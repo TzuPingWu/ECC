@@ -12,7 +12,7 @@ void matrixMul(element_t *lambda,element_t *temp,element_t *y,MSP *msp){
 			element_add(lambda[i],lambda[i],temp[j]);
 			
 		}
-		//element_printf("lambda[%d] = %B\n",i,lambda[i]);
+		element_printf("lambda[%d] = %B\n",i,lambda[i]);
 	}
 
 }
@@ -33,7 +33,7 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	element_init_G2(gA,pairing);
 	for(i = 0;i < attrNo;i++){
 		element_init_G2(h[i],pairing);
-		element_fread(fH,"%s %s",&h[i],10);	
+		element_fread(fH,"%s %s\n",&h[i],10);	
 		//element_printf("h[%d] = %B\n",i,h[i]);
 	}
 	//read the value of element from file
@@ -69,7 +69,7 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	//generate v = (s,y2..,yn)
 	element_init_Zr(s,pairing);
 	element_random(s);
-	//element_printf("s = %B\n",s);
+	element_printf("s = %B\n",s);
 	for(i = 0;i < cols;i++){
 		element_init_Zr(y[i],pairing);
 		element_init_Zr(temp[i],pairing);
@@ -92,7 +92,7 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 		element_init_Zr(r[i],pairing);//r_1...r_rows
 		element_init_Zr(r_neg[i],pairing);
 		element_init_G2(d_r[i],pairing);//D_1...D_rows
-		element_init_G2(cipher_r[i],pairing);
+		element_init_G2(cipher_r[i],pairing);//C_1...C_rows
 		element_init_G2(temp_2[i],pairing);
 		element_set0(lambda[i]);
 		element_random(r[i]);
@@ -108,6 +108,30 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 		element_mul(cipher_r[i],cipher_r[i],temp_2[i]);
 		element_fprintf(fC_rows,"%B\n",cipher_r[i]);
 	}//cipehr_r = (g^(a*lambda))*(h^-r)
+	//close the file pointer
+	fclose(fC);
+	fclose(fC_0);
+	fclose(fD_rows);
+	fclose(fC_rows);
+	//clear the element
+	element_clear(eGG);
+	element_clear(g);
+	element_clear(gA);
+	element_clear(eGGs);
+	element_clear(gS);
+	for( i = 0; i < rows; i++){
+		element_clear(h[i]);
+		element_clear(lambda[i]);
+		element_clear(r[i]);
+		element_clear(r_neg[i]);
+		element_clear(d_r[i]);
+		element_clear(cipher_r[i]);
+		element_clear(temp_2[i]);
+	}
 	
+	for( i = 0; i < cols ;i++){
+		element_clear(y[i]);
+		element_clear(temp[i]);
+	}
 	return;
 }
