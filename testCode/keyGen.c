@@ -11,6 +11,7 @@ void keyGen(pairing_t pairing,int attrIndex,int attrNo){
 	FILE *fG = fopen("publicKey/g.key","r");//fG to read the public key -genterator g
 	FILE *fGA = fopen("publicKey/gA.key","r");//fGA to read the public key -gA
 	FILE *fH = fopen("publicKey/h.key","r");//fH to read the public key-h[x]
+
 	element_t g;//generator g
 	element_t gA;//gA = g^A
 	element_t msk;//msk = g^alpha
@@ -43,29 +44,34 @@ void keyGen(pairing_t pairing,int attrIndex,int attrNo){
 	element_t L;//L = g^t
 	element_t K;//K = (g^alpha)*(g^at)
 	element_t Kx;//Kx = hx^t
+	element_t temp;
 	element_init_Zr(t,pairing);
 	element_init_G2(L,pairing);
 	element_init_G2(K,pairing);
 	element_init_G2(Kx,pairing);
+	element_init_G2(temp,pairing);
 	char fKxName[1024] = "privateKey/Kx";
-        char indexTemp[100];
+    char indexTemp[100];
 	sprintf(indexTemp,"%d",attrIndex);
 	strcat(fKxName,indexTemp); 
 	strcat(fKxName,".key");
+	FILE *fT = fopen("privateKey/t.key","w");
 	FILE *fL = fopen("privateKey/L.key","w");//fL to write the privateKey L
 	FILE *fK = fopen("privateKey/K.key","w");//fK to write the privateKey K
 	FILE *fKx = fopen(fKxName,"w");//fKx to write the privateKey fKx
 	
 	element_random(t);
+	
 	element_pow_zn(L,g,t);
 	element_fprintf(fL,"%B",L);
-	element_pow_zn(K,gA,t);//first K = g^at
-	element_mul(K,K,msk);//second K = K*g^alpha
+	element_pow_zn(temp,gA,t);//first K = g^at
+	element_mul(K,temp,msk);//second K = K*g^alpha
 	element_fprintf(fK,"%B",K);
-	
+	element_fprintf(fT,"%B",t);
 	element_pow_zn(Kx,h[attrIndex],t);//Kx = hx^t
-	element_fprintf(fKx,"%B\n",Kx);//Kx = hx^t
+	element_fprintf(fKx,"%B",Kx);//Kx = hx^t
 	//close all file pointer
+	fclose(fT);
 	fclose(fL);
 	fclose(fK);
 	fclose(fKx);

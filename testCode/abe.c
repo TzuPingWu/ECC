@@ -21,15 +21,15 @@ int main(){
 	     keyGen(pairing,i,attrNo);//genereate the private key according to user's attribute
 	}
 	MSP msp;//the monotone spanning program
-	element_t M;//the plaintext message;
-	element_init_G1(M,pairing);
-	element_random(M);
-	element_printf("M = %B\n",M);
+	element_t message;//the plaintext message;
+	element_init_GT(message,pairing);
+	element_random(message);
+	element_printf("M1 = %B\n",message);
 	mspSetup(&msp);
 	//3.Encrypt
-	encrypt(M,pairing,&msp,attrNo);
+	encrypt(message,pairing,&msp,attrNo);
 	//4.Decrypt
-	decrypt(pairing,&msp);
+	decrypt(pairing,&msp,message);
 	//5.Time calculation presents
 
 

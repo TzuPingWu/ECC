@@ -21,7 +21,7 @@ void element_fread_line(FILE *fp,element_t *e,int base){
         char *temp1 = calloc(1024,sizeof(char));
         char *temp2 = calloc(1024,sizeof(char));
         char *tempAll = calloc(2048,sizeof(char));
-	fgets(tempAll,2048,fp);
+		fgets(tempAll,2048,fp);
         element_set_str(*e,tempAll,base);
         free(temp1);
         free(temp2);

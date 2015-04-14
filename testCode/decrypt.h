@@ -2,5 +2,5 @@
 #define _DECRYPT_H
 #include "/usr/local/include/pbc/pbc.h"
 #include "LSSS.h"
-void decrypt(pairing_t pairing,MSP *msp);
+void decrypt(pairing_t pairing,MSP *msp,element_t message);
 #endif
