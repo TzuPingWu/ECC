@@ -52,13 +52,11 @@ void keyGen(pairing_t pairing,int attrIndex,int attrNo){
 	sprintf(indexTemp,"%d",attrIndex);
 	strcat(fKxName,indexTemp); 
 	strcat(fKxName,".key");
-	FILE *fT = fopen("privateKey/t.key","w");//fT to write the privateKey t
 	FILE *fL = fopen("privateKey/L.key","w");//fL to write the privateKey L
 	FILE *fK = fopen("privateKey/K.key","w");//fK to write the privateKey K
 	FILE *fKx = fopen(fKxName,"w");//fKx to write the privateKey fKx
 	
 	element_random(t);
-	element_fprintf(fT,"%B",t);
 	element_pow_zn(L,g,t);
 	element_fprintf(fL,"%B",L);
 	element_pow_zn(K,gA,t);//first K = g^at
@@ -68,7 +66,6 @@ void keyGen(pairing_t pairing,int attrIndex,int attrNo){
 	element_pow_zn(Kx,h[attrIndex],t);//Kx = hx^t
 	element_fprintf(fKx,"%B\n",Kx);//Kx = hx^t
 	//close all file pointer
-	fclose(fT);
 	fclose(fL);
 	fclose(fK);
 	fclose(fKx);

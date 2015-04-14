@@ -24,6 +24,7 @@ int main(){
 	element_t M;//the plaintext message;
 	element_init_G1(M,pairing);
 	element_random(M);
+	element_printf("M = %B\n",M);
 	mspSetup(&msp);
 	//3.Encrypt
 	encrypt(M,pairing,&msp,attrNo);
