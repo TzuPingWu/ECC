@@ -17,9 +17,7 @@ int main(){
 	int i = 0;//index for the following for loop
 	setup(attrNo,&pairing);//the first step to set up the public key and master key
 	//2.KeyGen
-	for( i = 0; i < attrNo; i++){
-	     keyGen(pairing,i,attrNo);//genereate the private key according to user's attribute
-	}
+	keyGen(pairing,attrNo);//genereate the private key according to user's attribute
 	MSP msp;//the monotone spanning program
 	element_t message;//the plaintext message;
 	element_init_GT(message,pairing);

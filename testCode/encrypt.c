@@ -80,6 +80,7 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	FILE *fC_rows = fopen("cipher/C_rows.cipher","w");
 	FILE *fD_rows = fopen("cipher/D_rows.cipher","w");
 	FILE *fOmega = fopen("privateKey/omega.key","w");
+	FILE *fS = fopen("privateKey/s.key","w");
 	//generate v = (s,y2..,yn)
 	element_init_Zr(s,pairing);
 	element_random(s);
@@ -106,7 +107,9 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	element_t test3;
 	element_t test4;
 	element_t test5;
+	element_t test6;
 	element_t msk;
+	element_init_G2(test6,pairing);
 	element_init_Zr(test5,pairing);
 	element_init_Zr(test4,pairing);
 	element_init_Zr(test3,pairing);
@@ -116,9 +119,9 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	element_init_G2(msk,pairing);
 	element_fread(fMSK,"%s %s",&msk,10);
 	element_pow_zn(egg,eGG,s);
-	element_printf("eGGalphaS = %B\n",egg);
+	//element_printf("eGGalphaS = %B\n",egg);
 	element_pairing(test2,gS,msk);
-
+	element_fprintf(fS,"%B",s);
 	//test
 	for( i = 0; i < rows ; i++){
 		element_init_Zr(lambda[i],pairing);//lambda_1...lambda_rows
@@ -132,22 +135,44 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 		element_set0(lambda[i]);
 		element_set0(omega[i]);
 		element_random(r[i]);
-		element_invert(r_neg[i],r[i]);
+		element_neg(r_neg[i],r[i]);
 		element_pow_zn(d_r[i],g,r[i]);
 		element_fprintf(fD_rows,"%B\n",d_r[i]);
 		element_set0(temp_2[i]);
 		element_set0(temp_3[i]);
+
 	}
 	matrixMul(lambda,temp,y,msp);//generate lambda
 	findOmega(omega,lambda,s,pairing,msp->rows);//generate omega
 	for( i = 0 ; i < rows; i++){
 		element_pow_zn(temp_2[i],gA,lambda[i]);
-		element_pow_zn(temp_3[i],h[i],r_neg[i]);
+		element_pow_zn(temp_3[i],h[i],r_neg[i]);		
 		element_mul(cipher_r[i],temp_2[i],temp_3[i]);
 		element_fprintf(fC_rows,"%B\n",cipher_r[i]);
 		element_fprintf(fOmega,"%B\n",omega[i]);
 	}//cipehr_r = (g^(a*lambda))*(h^-r)
-    
+
+    /*test2
+	FILE *fL = fopen("privateKey/L.key","r");
+	element_t  testResult1;
+	element_t  testResult2;
+	element_t gALambda;
+
+	element_t test;
+	element_t L;
+
+	element_init_GT(testResult1,pairing);
+	element_init_GT(testResult2,pairing);
+	element_init_G2(gALambda,pairing);
+	element_init_G2(L,pairing);
+	element_init_G2(test,pairing);
+	element_fread(fL,"%s %s",&L,10);
+
+	//element_pairing(testResult1,hNR,L);
+	//element_pairing(testResult2,L,hR);
+	//element_mul(test,testResult1,testResult2);
+
+	test2*/
 	//close the file pointer
 	fclose(fC);
 	fclose(fC_0);

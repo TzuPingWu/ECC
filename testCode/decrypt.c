@@ -16,9 +16,9 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	FILE *fD_rows = fopen("cipher/D_rows.cipher","r");
 	FILE *fK = fopen("privateKey/K.key","r");
 	FILE *fL = fopen("privateKey/L.key","r");
-	FILE *fK_0= fopen("privateKey/Kx0.key","r");
+	FILE *fKx= fopen("privateKey/Kx.key","r");
 	FILE *fOmega = fopen("privateKey/omega.key","r");
-	FILE *fT = fopen("privateKey/t.key","r");
+	FILE *fT = fopen("privateKey/tK.key","r");
 	
 	int i = 0;//the index for the following for-loop
 	int rows = msp->rows;//the rows of msp
@@ -30,7 +30,7 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	element_t d_r[rows];
 	element_t K;//private key K
 	element_t L;//private key L
-	element_t Kx0;//private key for attribute A user
+	element_t Kx[rows];//private key for attribute A user
 	element_t omega[rows];//omega *lambda = s
 	element_init_G2(g,pairing);
 	element_init_G2(gA,pairing);
@@ -38,22 +38,22 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	element_init_G2(gS,pairing);
 	element_init_G2(K,pairing);
 	element_init_G2(L,pairing);
-	element_init_G2(Kx0,pairing);
 	element_fread(fG,"%s %s",&g,10);
 	element_fread(fGA,"%s %s",&gA,10);
 	element_fread(fC,"%s %s",&C,10);
 	element_fread(fC_0,"%s %s",&gS,10);
 	element_fread(fK,"%s %s",&K,10);
 	element_fread(fL,"%s %s",&L,10);
-	element_fread(fK_0,"%s %s",&Kx0,10);
 	
 	for(i = 0; i < rows; i++){
 		element_init_G2(cipher_r[i],pairing);
 		element_init_G2(d_r[i],pairing);
 		element_init_Zr(omega[i],pairing);
+		element_init_G2(Kx[i],pairing);
 		element_fread(fC_rows,"%s %s\n",&cipher_r[i],10);
 		element_fread(fD_rows,"%s %s\n",&d_r[i],10);
-		element_fread(fOmega,"%s\n",&omega[i],10);
+		element_fread(fOmega,"%s\n",&omega[i],10);	
+		element_fread(fKx,"%s %s",&Kx[i],10);
 	}
 	///////finish reading the ciphertext and key from file////////
 	//////close the file poitner
@@ -64,21 +64,34 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	fclose(fD_rows);
 	fclose(fK);
 	fclose(fL);
-	fclose(fK_0);
-	//test
-	
+	fclose(fKx);
+	/*test
+	FILE *fS = fopen("privateKey/s.key","r");
+	element_t s;
 	element_t t;
 	element_t mid;
 	element_t eGGAST;
+	element_t eGHRT;
+	element_t eGGATL_eGHRT;
+	element_t hTInverse;
+	element_init_Zr(s,pairing);
 	element_init_Zr(t,pairing);
+	element_init_GT(hTInverse,pairing);
 	element_init_GT(mid,pairing);	
 	element_init_GT(eGGAST,pairing);
+	element_init_GT(eGHRT,pairing);
+	element_init_GT(eGGATL_eGHRT,pairing);
 	element_fread(fT,"%s",&t,10);
-//	element_printf("t = %B\n",t);
+	element_fread(fS,"%s",&s,10);
 	element_pairing(mid,gA,gS);
 	element_pow_zn(eGGAST,mid,t);
-	element_printf("denominator1 = %B\n",eGGAST);
-	//test
+	element_pairing(eGHRT,Kx[0],d_r[0]);
+	element_invert(hTInverse,eGHRT);
+	element_mul(eGGATL_eGHRT,eGGAST,hTInverse);
+	//element_printf("t = %B\n",t);
+	//element_printf("denominator1 = %B\n",eGGAST);
+	//element_printf("eCL1 = %B\n",eGGATL_eGHRT);
+	//test*/
 	//start to decrypt the ciphertext
 	element_t eGGAlphaS;//e(g,g)^alphaS
 	element_t eGGgSK;//e(C',K)
@@ -100,14 +113,15 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	//start to calculate
 	element_pairing(eGGgSK,gS,K);
 	element_pairing(eCL,cipher_r[0],L);
-	element_pairing(eDKx,d_r[0],Kx0);
+	//element_printf("eCL2 = %B\n",eCL);
+	element_pairing(eDKx,d_r[0],Kx[0]);
 	element_set0(temp);
 	element_mul(temp,eCL,eDKx);
 	element_pow_zn(denominator,temp,omega[0]);
-	element_printf("denominator2 = %B\n",denominator);
+	//element_printf("denominator2 = %B\n",denominator);
 	element_div(eGGAlphaS,eGGgSK,denominator);
 	
-	element_printf("eGGalphaS2 = %B\n",eGGAlphaS);
+	//element_printf("eGGalphaS2 = %B\n",eGGAlphaS);
 	element_div(plaintext,C,eGGAlphaS);
 	element_printf("M2 = %B\n",plaintext);
 

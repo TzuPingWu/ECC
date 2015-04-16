@@ -33,7 +33,7 @@ void mspClear(MSP *msp){
 	return;
 }//clear the msp
 void mspSetup(MSP *msp){
-	mspInit(msp,5,4);
+	mspInit(msp,5,3);
 	msp -> label[0] = "A";
 	msp -> label[1] = "B";
 	msp -> label[2] = "C";
@@ -71,27 +71,22 @@ void mspSetup(MSP *msp){
 	msp -> matrix[0][0] = 1;
 	msp -> matrix[0][1] = 0;
 	msp -> matrix[0][2] = 0;
-	msp -> matrix[0][3] = 0;
 	//attribute A
 	msp -> matrix[1][0] = 1;
 	msp -> matrix[1][1] = 1;
 	msp -> matrix[1][2] = 0;
-	msp -> matrix[1][3] = 0;
 	//attribute B
 	msp -> matrix[2][0] = 1;
 	msp -> matrix[2][1] = 1;
 	msp -> matrix[2][2] = 0;
-	msp -> matrix[2][3] = 0;
 	//attribute C
-	msp -> matrix[3][0] = 1;
+	msp -> matrix[3][0] = 0;
 	msp -> matrix[3][1] = -1;
-	msp -> matrix[3][2] = -1;
-	msp -> matrix[3][3] = 1;
+	msp -> matrix[3][2] = 1;
 	//attribute D
 	msp -> matrix[4][0] = 0;
 	msp -> matrix[4][1] = 0;
-	msp -> matrix[4][2] = 1;
-	msp -> matrix[4][3] = -1;	
+	msp -> matrix[4][2] = -1;	
 	//attribute E
 	return;
 }
