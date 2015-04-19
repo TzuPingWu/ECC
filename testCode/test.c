@@ -12,7 +12,7 @@ int main(){
 	clock_t tStart,tEnd;//tStart:the start of tate pairing, tEnd:the end of tate pairing
 	clock_t wStart,wEnd;//wStart:the start of weil pairing, wEnd:the end of weil pairing
 	float difftime = 0;
-	printf("Start!\n");
+	printf("Hello!\n");
 	if(!count) pbc_die("input error!\n");
 	result = pairing_init_set_buf(pairing,param,count);
 	if(result) printf("Finish!\n");
@@ -53,8 +53,8 @@ int main(){
 	element_init_GT(temp2,pairing);	
 	//weil pairing
 	wStart = clock();
-	tate2weil(&temp1,sig,g,pairing);
-	tate2weil(&temp2,h,public_key,pairing);
+	weilPairing(&temp1,sig,g,pairing);
+	weilPairing(&temp2,h,public_key,pairing);
 	if(!element_cmp(temp1,temp2)){
 		printf("W signature verifies\n");
 	} else {
