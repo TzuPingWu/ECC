@@ -34,7 +34,7 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	for(i = 0;i < attrNo;i++){
 		element_init_G2(h[i],pairing);
 		element_fread(fH,"%s %s\n",&h[i],10);	
-		//lement_printf("h[%d] = %B\n",i,h[i]);
+		//element_printf("h[%d] = %B\n",i,h[i]);
 	}
 	//read the value of element from file
 	element_fread(fEGG,"%s %s",&eGG,10);
@@ -67,7 +67,6 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	FILE *fC_0 = fopen("cipher/C_0.cipher","w");
 	FILE *fC_rows = fopen("cipher/C_rows.cipher","w");
 	FILE *fD_rows = fopen("cipher/D_rows.cipher","w");
-	FILE *fS = fopen("privateKey/s.key","w");
 	//generate v = (s,y2..,yn)
 	element_init_Zr(s,pairing);
 	element_random(s);
@@ -117,7 +116,8 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	element_pow_zn(egg,eGG,s);
 	//element_printf("eGGalphaS = %B\n",egg);
 	element_pairing(test2,gS,msk);
-	element_fprintf(fS,"%B",s);
+	
+	
 	//test
 	for( i = 0; i < rows ; i++){
 		element_init_Zr(lambda[i],pairing);//lambda_1...lambda_rows
@@ -128,9 +128,9 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 		element_init_G2(temp_2[i],pairing);
 		element_init_G2(temp_3[i],pairing);
 		element_set0(lambda[i]);
-		element_random(r[i]);
-		element_neg(r_neg[i],r[i]);
+		element_random(r[i]);	
 		element_pow_zn(d_r[i],g,r[i]);
+		element_neg(r_neg[i],r[i]);
 		element_fprintf(fD_rows,"%B\n",d_r[i]);
 		element_set0(temp_2[i]);
 		element_set0(temp_3[i]);
@@ -144,27 +144,7 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 		element_fprintf(fC_rows,"%B\n",cipher_r[i]);
 	}//cipehr_r = (g^(a*lambda))*(h^-r)
 
-    /*test2
-	FILE *fL = fopen("privateKey/L.key","r");
-	element_t  testResult1;
-	element_t  testResult2;
-	element_t gALambda;
 
-	element_t test;
-	element_t L;
-
-	element_init_GT(testResult1,pairing);
-	element_init_GT(testResult2,pairing);
-	element_init_G2(gALambda,pairing);
-	element_init_G2(L,pairing);
-	element_init_G2(test,pairing);
-	element_fread(fL,"%s %s",&L,10);
-
-	//element_pairing(testResult1,hNR,L);
-	//element_pairing(testResult2,L,hR);
-	//element_mul(test,testResult1,testResult2);
-
-	test2*/
 	//close the file pointer
 	fclose(fC);
 	fclose(fC_0);

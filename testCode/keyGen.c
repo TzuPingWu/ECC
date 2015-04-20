@@ -50,13 +50,11 @@ void keyGen(pairing_t pairing,int attrNo){
 	element_init_G2(K,pairing);
 	element_init_G2(Kx,pairing);
 	element_init_G2(temp,pairing);
-	FILE *fT = fopen("privateKey/tK.key","w");//fT to write the privateKey t
 	FILE *fL = fopen("privateKey/L.key","w");//fL to write the privateKey L
 	FILE *fK = fopen("privateKey/K.key","w");//fK to write the privateKey K
 	FILE *fKx = fopen("privateKey/Kx.key","w");//fKx to write the privateKey fKx
 	
 	element_random(t);
-	element_fprintf(fT,"%B",t);
 	element_pow_zn(L,g,t);
 	element_fprintf(fL,"%B",L);
 	element_pow_zn(temp,gA,t);//first K = g^at
@@ -66,11 +64,10 @@ void keyGen(pairing_t pairing,int attrNo){
 	for( i = 0; i  < attrNo; i++){
 		element_set0(Kx);
 		element_pow_zn(Kx,h[i],t);//Kx = hx^t
-		element_fprintf(fKx,"%B",Kx);//Kx = hx^t
+		element_fprintf(fKx,"%B\n",Kx);//Kx = hx^t
 	}
 	//close all file pointer
 	fclose(fL);
 	fclose(fK);
 	fclose(fKx);	
-	fclose(fT);
 }//end of keyGen

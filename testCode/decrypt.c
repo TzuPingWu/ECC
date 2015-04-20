@@ -91,7 +91,7 @@ void findOmega(MSP *msp,element_t *omega){
 			element_neg(omega[i],omega[i]);
 		}
 		//printf("result[%d] = %d\n",i,result[i]);
-		element_printf("omega[%d] = %B\n",i,omega[i]);
+		//element_printf("omega[%d] = %B\n",i,omega[i]);
 	}
 	
 	return;
@@ -109,7 +109,6 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	FILE *fL = fopen("privateKey/L.key","r");
 	FILE *fKx= fopen("privateKey/Kx.key","r");
 	FILE *fOmega = fopen("privateKey/omega.key","r");
-	FILE *fT = fopen("privateKey/tK.key","r");
 	
 	int i = 0;//the index for the following for-loop
 	int rows = msp->rows;//the rows of msp
@@ -158,33 +157,27 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	fclose(fKx);
 	
 	findOmega(msp,omega);
-	/*test
-	FILE *fS = fopen("privateKey/s.key","r");
-	element_t s;
-	element_t t;
+	//test
 	element_t mid;
 	element_t eGGAST;
 	element_t eGHRT;
 	element_t eGGATL_eGHRT;
 	element_t hTInverse;
-	element_init_Zr(s,pairing);
-	element_init_Zr(t,pairing);
+	//element_init_Zr(t,pairing);
 	element_init_GT(hTInverse,pairing);
 	element_init_GT(mid,pairing);	
 	element_init_GT(eGGAST,pairing);
 	element_init_GT(eGHRT,pairing);
 	element_init_GT(eGGATL_eGHRT,pairing);
-	element_fread(fT,"%s",&t,10);
-	element_fread(fS,"%s",&s,10);
 	element_pairing(mid,gA,gS);
-	element_pow_zn(eGGAST,mid,t);
+	//element_pow_zn(eGGAST,mid,t);
 	element_pairing(eGHRT,Kx[0],d_r[0]);
 	element_invert(hTInverse,eGHRT);
 	element_mul(eGGATL_eGHRT,eGGAST,hTInverse);
 	//element_printf("t = %B\n",t);
 	//element_printf("denominator1 = %B\n",eGGAST);
 	//element_printf("eCL1 = %B\n",eGGATL_eGHRT);
-	//test*/
+	//test
 	//start to decrypt the ciphertext
 	element_t eGGAlphaS;//e(g,g)^alphaS
 	element_t eGGgSK;//e(C',K)
@@ -224,26 +217,31 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	element_init_GT(plaintext,pairing);
 	//start to calculate
 	element_pairing(eGGgSK,gS,K);
-	element_pairing(eCL,cipher_r[0],L);
+	element_pairing(eCL,cipher_r[2],L);
 	element_pairing(eCL2,cipher_r[3],L);
 	element_pairing(eCL3,cipher_r[4],L);
-	//element_printf("eCL2 = %B\n",eCL);
-	element_pairing(eDKx,d_r[0],Kx[0]);
+	element_pairing(eDKx,d_r[2],Kx[2]);
 	element_pairing(eDKx2,d_r[3],Kx[3]);
 	element_pairing(eDKx3,d_r[4],Kx[4]);
 	
 	element_set0(temp);
+	element_set0(temp2);
+	element_set0(temp3);
+	element_set0(temp4);
+	element_set0(denominator);
 	element_mul(temp,eCL,eDKx);
-//	element_pow_zn(temp,temp,omega[0]);
-//	element_mul(temp2,eCL2,eDKx2);
-//	element_pow_zn(temp2,temp2,omega[1]);
-//	element_mul(temp3,eCL3,eDKx3);
-//	element_pow_zn(temp3,temp3,omega[2]);
+	element_pow_zn(temp,temp,omega[0]);
+	element_mul(temp2,eCL2,eDKx2);
+	element_pow_zn(temp2,temp2,omega[1]);
+	element_mul(temp3,eCL3,eDKx3);
+	element_pow_zn(temp3,temp3,omega[2]);
+	element_mul(temp4,temp,temp2);
+	element_mul(denominator,temp4,temp3);
 //	element_printf("test1 = %B\ntest2 = %B\n,test3 = %B\n",temp,temp2,temp3);
-//	element_mul(temp4,temp,temp2);
-//	element_mul(denominator,temp4,temp3);
-	element_pow_zn(denominator,temp,omega[0]);
-	//element_printf("denominator2 = %B\n",denominator);
+	element_mul(temp4,temp,temp2);
+	element_mul(denominator,temp4,temp3);
+//	element_pow_zn(denominator,temp,omega[0]);
+//	element_printf("denominator3 = %B\n",denominator);
 	element_div(eGGAlphaS,eGGgSK,denominator);
 	
 	//element_printf("eGGalphaS2 = %B\n",eGGAlphaS);
