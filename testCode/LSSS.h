@@ -7,7 +7,7 @@
 
 typedef struct MonotoneSpanProgram{
 	int **matrix;
-	char **label;
+	char *label;
 	int rows;
 	int cols;
 
