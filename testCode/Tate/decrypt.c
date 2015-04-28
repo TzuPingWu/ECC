@@ -12,9 +12,9 @@ void swap(int *A,int *B){
 	return;
 }
 
-void findOmega(MSP *msp,element_t *omega){
+void findOmega(MSP *msp,element_t *omega,int attrNo,char *attribute){
 	
-	int rows = 3;
+	int rows = attrNo;
 	int cols = msp->cols;
 	int sum = 0;
 	int k, i, j; //the index of the for-loop
@@ -23,18 +23,32 @@ void findOmega(MSP *msp,element_t *omega){
 	int identity[rows];
 	int result[rows];
 	int middle[rows][rows];
-	tempMatrix[0][0] = 1;
-	tempMatrix[0][1] = 1;
-	tempMatrix[0][2] = 0;
-	tempMatrix[1][0] = 0;
-	tempMatrix[1][1] = -1;
-	tempMatrix[1][2] = 1;
-	tempMatrix[2][0] = 0;
-	tempMatrix[2][1] = 0;
-	tempMatrix[2][2] = -1;
-	identity[0] = 1;
-	identity[1] = 0;
-	identity[2] = 0;
+	char tmpLabel[2];
+	char tmpAttr[2];
+	int x = 0;//the index of the tempMatrix
+	int y = 0;//the index of the tempMatrix
+	int count = 0;//the count for while-loop
+	for(i =0; i < rows;i++){
+		if(i==0) identity[i]  = 1;
+		else identity[i] = 0;
+		for(j = 0;j<msp->rows;j++){
+			memset(tmpLabel,0,2);
+			memset(tmpAttr,0,2);
+			sprintf(tmpLabel,"%c",msp->label[j]);
+			sprintf(tmpAttr,"%c",attribute[i]);
+			if( strcmp(tmpLabel,tmpAttr) == 0){
+				while(count != cols){
+					tempMatrix[x][y] = msp->matrix[j][count];
+					printf("tempMatrix[%d][%d] = %d\n",x,y,tempMatrix[x][y]);
+					count++;
+					y++;
+				}
+				count = 0;
+				y = 0;
+				x++;
+			}
+		}
+	}
 	//initialize the target array
 	//start to find the inverse matrix
     for (i=0; i<rows; ++i)
@@ -96,8 +110,7 @@ void findOmega(MSP *msp,element_t *omega){
 	
 	return;
 }
-void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *userName){
-	
+void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attribute,char *userName){
 	//file pointer to read the ciphertext and private key
 	FILE *fG = fopen("publicKey/g.key","r");
 	FILE *fGA = fopen("publicKey/gA.key","r");
@@ -171,7 +184,7 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *userN
 	fclose(fL);
 	fclose(fKx);
 	
-	findOmega(msp,omega);
+	findOmega(msp,omega,attrNo,attribute);
 	//test
 	element_t mid;
 	element_t eGGAST;

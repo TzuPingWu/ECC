@@ -54,7 +54,7 @@ int main(){
 	//3.Encrypt
 	encrypt(message,pairing,&msp);
 	//4.Decrypt
-	decrypt(pairing,&msp,message,attrNo[1],userName[1]);	
+	decrypt(pairing,&msp,message,attrNo[1],attribute[1],userName[1]);	
 	tEnd = clock();	
 	//5.Time calculation presents
 	difftime = (float)(tEnd-tStart)/CLOCKS_PER_SEC;
