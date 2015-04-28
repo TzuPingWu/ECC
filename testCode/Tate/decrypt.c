@@ -96,7 +96,7 @@ void findOmega(MSP *msp,element_t *omega){
 	
 	return;
 }
-void decrypt(pairing_t pairing,MSP *msp,element_t message){
+void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *userName){
 	
 	//file pointer to read the ciphertext and private key
 	FILE *fG = fopen("publicKey/g.key","r");
@@ -105,11 +105,24 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	FILE *fC_0 = fopen("cipher/C_0.cipher","r");
 	FILE *fC_rows = fopen("cipher/C_rows.cipher","r");
 	FILE *fD_rows = fopen("cipher/D_rows.cipher","r");
-	FILE *fK = fopen("privateKey/K.key","r");
-	FILE *fL = fopen("privateKey/L.key","r");
-	FILE *fKx= fopen("privateKey/Kx.key","r");
-	FILE *fOmega = fopen("privateKey/omega.key","r");
-	
+	FILE *fK;
+	FILE *fL;
+	FILE *fKx;
+	char kCmd[100];
+	char lCmd[100];
+	char kxCmd[100];
+	memset(kCmd,0,100);
+	memset(lCmd,0,100);
+	memset(kxCmd,0,100);
+	strcpy(kCmd,userName);
+	strcat(kCmd,"/K.key");
+	strcpy(lCmd,userName);
+	strcat(lCmd,"/L.key");
+	strcpy(kxCmd,userName);
+	strcat(kxCmd,"/Kx.key");
+	fK = fopen(kCmd,"r");
+	fL = fopen(lCmd,"r");
+	fKx = fopen(kxCmd,"r");
 	int i = 0;//the index for the following for-loop
 	int rows = msp->rows;//the rows of msp
 	element_t gA;//gA = g^a
@@ -120,7 +133,7 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	element_t d_r[rows];
 	element_t K;//private key K
 	element_t L;//private key L
-	element_t Kx[rows];//private key for attribute A user
+	element_t Kx[attrNo];//private key for attribute A user
 	element_t omega[rows];//omega *lambda = s
 	element_init_G2(g,pairing);
 	element_init_G2(gA,pairing);
@@ -139,11 +152,13 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 		element_init_G2(cipher_r[i],pairing);
 		element_init_G2(d_r[i],pairing);
 		element_init_Zr(omega[i],pairing);
-		element_init_G2(Kx[i],pairing);
 		element_fread(fC_rows,"%s %s\n",&cipher_r[i],10);
 		element_fread(fD_rows,"%s %s\n",&d_r[i],10);
-	//	element_fread(fOmega,"%s\n",&omega[i],10);	
-		element_fread(fKx,"%s %s",&Kx[i],10);
+	}
+	for(i = 0; i < attrNo;i++){
+		element_init_G2(Kx[i],pairing);
+		element_fread(fKx,"%s %s\n",&Kx[i],10);
+	//	element_printf("Kx[%d] = %B\n",i,Kx[i]);
 	}
 	///////finish reading the ciphertext and key from file////////
 	//////close the file poitner
@@ -217,12 +232,12 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message){
 	element_init_GT(plaintext,pairing);
 	//start to calculate
 	element_pairing(eGGgSK,gS,K);
-	element_pairing(eCL,cipher_r[2],L);
+	element_pairing(eCL,cipher_r[1],L);
 	element_pairing(eCL2,cipher_r[3],L);
 	element_pairing(eCL3,cipher_r[4],L);
-	element_pairing(eDKx,d_r[2],Kx[2]);
-	element_pairing(eDKx2,d_r[3],Kx[3]);
-	element_pairing(eDKx3,d_r[4],Kx[4]);
+	element_pairing(eDKx,d_r[1],Kx[0]);
+	element_pairing(eDKx2,d_r[3],Kx[1]);
+	element_pairing(eDKx3,d_r[4],Kx[2]);
 	
 	element_set0(temp);
 	element_set0(temp2);

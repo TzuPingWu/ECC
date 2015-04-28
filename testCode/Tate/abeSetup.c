@@ -1,5 +1,6 @@
 #include "/usr/local/include/pbc/pbc.h"
 #include "abeSetup.h"
+#include "LSSS.h"
 #include "elementIO.h"
 #include<stdio.h>
 
@@ -23,7 +24,7 @@ void setupPairing(pairing_t *pairing){
 	return;
 }
 
-void setup(int attrNo,pairing_t *pairing){
+void setup(int attrNo,pairing_t *pairing, MSP *msp){
 	int count = 0;//the index of the attribute array
 	setupPairing(pairing);//setup pairing first
     element_t g;//the generator of G
@@ -34,12 +35,9 @@ void setup(int attrNo,pairing_t *pairing){
     attributes in the system.
     */
       
-    element_t h[attrNo];
-	while(count!=attrNo){
-		element_init_G2(h[count],*pairing);
-		element_random(h[count]);
-			count++;
-	}//end of while, finish generating the h_1...h_attrNo
+    element_t h;
+	element_init_G2(h,*pairing);
+	//initial the h
 	element_t alpha;
 	element_t a;
 	//initial the alpha and a in Z_p        
@@ -65,23 +63,36 @@ void setup(int attrNo,pairing_t *pairing){
 	FILE* fG = fopen("publicKey/g.key","w");//file pointer to the public key g
 	FILE* fGA = fopen("publicKey/gA.key","w");//file pointer to the public key gA
 	FILE* fPub = fopen("publicKey/eGG.key","w");//file pointer to the public key e(g,gALPHA)
-	FILE* fH = fopen("publicKey/h.key","w");//file pointer to the public key h
+	FILE* fH;//file pointer the the attribute key
 	FILE* fMsk = fopen("MSK/msk.key","w");//file pointer to the master key
 	element_fprintf(fG,"%B\n",g);
 	element_fprintf(fPub,"%B\n",pubKey);
 	element_fprintf(fGA,"%B\n",gA);
 	count = 0;
+	char hCmd[100];//the command line for the pointer of FILE* fH
+	char attrName[2];//the name of attribute
+	memset(hCmd,'\0',100);
+	memset(attrName,'\0',2);
+	strcpy(hCmd,"publicKey/h");
 	while(count!=attrNo){
-		element_fprintf(fH,"%B\n",h[count]);
-		element_clear(h[count]);
+		sprintf(attrName,"%c",msp->label[count]);
+		strcat(hCmd,attrName);
+		strcat(hCmd,".key");
+		fH = fopen(hCmd,"w");		
+		element_random(h);
+		element_fprintf(fH,"%B",h);
+		memset(hCmd,'\0',100);		
+		strcpy(hCmd,"publicKey/h");
+		memset(attrName,'\0',2);
+		fclose(fH);
 		count++;
 	}
+	element_clear(h);
 	element_fprintf(fMsk,"%B\n",msk);
 	//close the file pointer and clear all the element
 	fclose(fG);
 	fclose(fGA);
 	fclose(fPub);
-	fclose(fH);
 	fclose(fMsk);
 	element_clear(g);
 	element_clear(a);
