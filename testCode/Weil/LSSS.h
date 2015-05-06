@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 typedef struct MonotoneSpanProgram{
 	int **matrix;	
 	char *label;

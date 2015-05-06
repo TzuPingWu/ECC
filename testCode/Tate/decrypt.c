@@ -4,6 +4,7 @@
 #include "LSSS.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 void swap(int *A,int *B){
 	int temp;
 	temp = *A;
@@ -39,7 +40,6 @@ void findOmega(MSP *msp,element_t *omega,int attrNo,char *attribute){
 			if( strcmp(tmpLabel,tmpAttr) == 0){
 				while(count != cols){
 					tempMatrix[x][y] = msp->matrix[j][count];
-					printf("tempMatrix[%d][%d] = %d\n",x,y,tempMatrix[x][y]);
 					count++;
 					y++;
 				}
@@ -136,7 +136,7 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attri
 	fK = fopen(kCmd,"r");
 	fL = fopen(lCmd,"r");
 	fKx = fopen(kxCmd,"r");
-	int i = 0;//the index for the following for-loop
+	int i = 0,j = 0;//the index for the following for-loop
 	int rows = msp->rows;//the rows of msp
 	element_t gA;//gA = g^a
 	element_t g;//g
@@ -185,7 +185,7 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attri
 	fclose(fKx);
 	
 	findOmega(msp,omega,attrNo,attribute);
-	//test
+	/*test
 	element_t mid;
 	element_t eGGAST;
 	element_t eGHRT;
@@ -205,74 +205,51 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attri
 	//element_printf("t = %B\n",t);
 	//element_printf("denominator1 = %B\n",eGGAST);
 	//element_printf("eCL1 = %B\n",eGGATL_eGHRT);
-	//test
+	//test*/
+
 	//start to decrypt the ciphertext
 	element_t eGGAlphaS;//e(g,g)^alphaS
 	element_t eGGgSK;//e(C',K)
 	element_t eCL;//e(C_i,L)
-	element_t eCL2;//e(C_i,L)
-	element_t eCL3;//e(C_i,L)
-
 	element_t eDKx;//e(D_i,Kx)
-	element_t eDKx2;//e(D_i,Kx)
-	element_t eDKx3;//e(D_i,Kx)
-
-	element_t denominator;
 	element_t temp;
-	element_t temp2;
-	element_t temp3;
-	element_t temp4;
+	element_t denominator;//eCL*eDKx
 	element_t plaintext;
+	char tmpLabel[2];
+	char tmpAttr[2];
 	//numerator
 	element_init_GT(eGGAlphaS,pairing);
 	element_init_GT(eGGgSK,pairing);
 	//denominator
 	element_init_GT(eCL,pairing);
-	element_init_GT(eCL2,pairing);
-	element_init_GT(eCL3,pairing);
-	
 	element_init_GT(eDKx,pairing);
-	element_init_GT(eDKx2,pairing);
-	element_init_GT(eDKx3,pairing);
-	
-	element_init_GT (temp,pairing);
-	element_init_GT (temp2,pairing);
-	element_init_GT (temp3,pairing);
-	element_init_GT (temp4,pairing);
-
+	element_init_GT(temp,pairing);
 	element_init_GT(denominator,pairing);
 	//plaintext
 	element_init_GT(plaintext,pairing);
 	//start to calculate
+	//numerator
 	element_pairing(eGGgSK,gS,K);
-	element_pairing(eCL,cipher_r[1],L);
-	element_pairing(eCL2,cipher_r[3],L);
-	element_pairing(eCL3,cipher_r[4],L);
-	element_pairing(eDKx,d_r[1],Kx[0]);
-	element_pairing(eDKx2,d_r[3],Kx[1]);
-	element_pairing(eDKx3,d_r[4],Kx[2]);
-	
-	element_set0(temp);
-	element_set0(temp2);
-	element_set0(temp3);
-	element_set0(temp4);
+	//denominator
 	element_set0(denominator);
-	element_mul(temp,eCL,eDKx);
-	element_pow_zn(temp,temp,omega[0]);
-	element_mul(temp2,eCL2,eDKx2);
-	element_pow_zn(temp2,temp2,omega[1]);
-	element_mul(temp3,eCL3,eDKx3);
-	element_pow_zn(temp3,temp3,omega[2]);
-	element_mul(temp4,temp,temp2);
-	element_mul(denominator,temp4,temp3);
-//	element_printf("test1 = %B\ntest2 = %B\n,test3 = %B\n",temp,temp2,temp3);
-	element_mul(temp4,temp,temp2);
-	element_mul(denominator,temp4,temp3);
-//	element_pow_zn(denominator,temp,omega[0]);
-//	element_printf("denominator3 = %B\n",denominator);
+	for( i = 0; i<rows;i++){
+		for(j = 0 ; j < attrNo;j++){
+			memset(tmpLabel,0,2);
+			memset(tmpAttr,0,2);
+			sprintf(tmpLabel,"%c",msp->label[i]);
+			sprintf(tmpAttr,"%c",attribute[j]);
+			if(!strcmp(tmpLabel,tmpAttr)){
+				element_set0(temp);
+				element_pairing(eCL,cipher_r[i],L);
+				element_pairing(eDKx,d_r[i],Kx[j]);
+				element_mul(temp,eCL,eDKx);
+				element_pow_zn(temp,temp,omega[j]);
+				element_mul(denominator,denominator,temp);
+			}
+		}
+	}
+
 	element_div(eGGAlphaS,eGGgSK,denominator);
-	
-	//element_printf("eGGalphaS2 = %B\n",eGGAlphaS);
 	element_div(plaintext,C,eGGAlphaS);
 	element_printf("M2 = %B\n",plaintext);
 

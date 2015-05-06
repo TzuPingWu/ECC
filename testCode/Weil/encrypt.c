@@ -1,4 +1,5 @@
 #include "/usr/local/include/pbc/pbc.h"
+#include "/usr/local/include/pbc/pbc.h"
 #include "encrypt.h"
 #include "LSSS.h"
 #include <stdio.h>
@@ -16,25 +17,36 @@ void matrixMul(element_t *lambda,element_t *temp,element_t *y,MSP *msp){
 		//element_printf("lambda[%d] = %B\n",i,lambda[i]);
 	}
 }
-void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
+void encrypt(element_t message,pairing_t pairing,MSP *msp){
 	FILE *fEGG = fopen("publicKey/eGG.key","r");//open the file of publicKey/eGG.key
 	FILE *fG = fopen("publicKey/g.key","r");//open the file of publicKey/g.key
 	FILE *fGA = fopen("publicKey/gA.key","r");//open the file of publicKey/gA.key
-	FILE *fH = fopen("publicKey/h.key","r");//open the file of publicKey/h.key
+	FILE *fH;//open the file of publicKey/h.key
 	FILE *fMSK = fopen("MSK/msk.key","r");//open the file of MSK/msk.key
 	element_t eGG;
 	element_t g;//g
 	element_t gA;//g^a
-	element_t h[attrNo];//attribute h
+	element_t h[msp->rows];//attribute h
 	int i,j = 0;//the index of following for-loop
 	//initialize the element
 	element_init_GT(eGG,pairing);
 	element_init_G2(g,pairing);
 	element_init_G2(gA,pairing);
-	for(i = 0;i < attrNo;i++){
+	char hCmd[100];//the command line of attribute h
+	char attrName[2];//the name of the attributes
+	memset(hCmd,0,100);//initialize the hCmd
+	memset(attrName,0,2);//initialize the attrName
+	for(i = 0;i < msp->rows;i++){
+		strcpy(hCmd,"publicKey/h");
+		sprintf(attrName,"%c",msp->label[i]);
+		strcat(hCmd,attrName);
+		strcat(hCmd,".key");
+		fH = fopen(hCmd,"r");
 		element_init_G2(h[i],pairing);
-		element_fread(fH,"%s %s\n",&h[i],10);	
-		//element_printf("h[%d] = %B\n",i,h[i]);
+		element_fread(fH,"%s %s\n",&h[i],10);
+		memset(attrName,0,2);
+		fclose(fH);
+	//	element_printf("h[%d] = %B\n",i,h[i]);
 	}
 	//read the value of element from file
 	element_fread(fEGG,"%s %s",&eGG,10);
@@ -44,9 +56,8 @@ void encrypt(element_t message,pairing_t pairing,MSP *msp,int attrNo){
 	fclose(fEGG);
 	fclose(fG);
 	fclose(fGA);
-	fclose(fH);
 	//start to encrypt the message
-	int rows = msp -> rows;
+	int rows = msp-> rows;
 	int cols = msp -> cols;
 	element_t s;//the secret of s
 	element_t y[cols];//the rest of random number y[0]=s

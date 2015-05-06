@@ -1,8 +1,10 @@
 #include "/usr/local/include/pbc/pbc.h"
+#include "/usr/local/include/pbc/pbc_utils.h"
 #include "abeSetup.h"
 #include "LSSS.h"
 #include "elementIO.h"
 #include<stdio.h>
+#include<stdint.h>
 
 void generatePrime(mpz_t *p,int sBit){
 	mpz_init(*p);//initial the prime p
@@ -11,7 +13,7 @@ void generatePrime(mpz_t *p,int sBit){
 	return;
 }
 
-void setupPairing(pairing_t *pairing){
+void setupSingularPairing(pairing_t *pairing){
 	mpz_t p;
 	generatePrime(&p,512);//generate 512-bit prime
 	pbc_param_t param;
@@ -24,9 +26,27 @@ void setupPairing(pairing_t *pairing){
 	return;
 }
 
-void setup(int attrNo,pairing_t *pairing, MSP *msp){
+void setupOrdinaryPairing(pairing_t *pairing){
+	int rbits = 160;
+	int qbits = 1024;
+	pbc_param_t param;
+	pbc_param_init_e_gen(param,rbits,qbits);
+	pairing_init_pbc_param(*pairing,param);
+//	pairing_param_clear(param);
+}
+
+void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
 	int count = 0;//the index of the attribute array
-	setupPairing(pairing);//setup pairing first
+	if(!strcmp(string,"ordinary")){
+		setupOrdinaryPairing(pairing);
+		printf("Use ordinary curve...\n");
+	}else if(!strcmp(string,"singular")){
+		setupSingularPairing(pairing);//setup pairing first
+		printf("Use singular curve...\n");
+	}else{
+		fprintf(stderr,"Wrong input arguments!");		
+		fprintf(stderr,"Please input <./abe><sinuglar> or <./abe><ordinary>\n");
+	}
     element_t g;//the generator of G
     element_init_G2(g,*pairing);//initial the generator g
     element_random(g);

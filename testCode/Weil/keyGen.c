@@ -4,15 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include "elementIO.h"
 
-void keyGen(pairing_t pairing,int attrNo,MSP *msp){
+void keyGen(pairing_t pairing,int attrNo,char *attribute,char *userName){
 	
 	FILE *fMsk = fopen("MSK/msk.key","r");//fMsk to read the master key
 	FILE *fG = fopen("publicKey/g.key","r");//fG to read the public key -genterator g
 	FILE *fGA = fopen("publicKey/gA.key","r");//fGA to read the public key -gA
-	FILE *fH = fopen("publicKey/h.key","r");//fH to read the public key-h[x]
-
+	FILE *fH;//fH to read the public key-h attribute
+	char hCmd[100];//the command line of attribute h
+	char attrName[2];//the name of the attributes
 	element_t g;//generator g
 	element_t gA;//gA = g^A
 	element_t msk;//msk = g^alpha
@@ -24,12 +26,19 @@ void keyGen(pairing_t pairing,int attrNo,MSP *msp){
 	element_fread(fGA,"%s %s",&gA,10);
 	//element_printf("gA= %B\n",gA);
 	element_init_G2(msk,pairing);
-	
+	memset(hCmd,0,100);//initialize the hCmd
+	memset(attrName,0,2);//initialize the attrName
 	int i = 0;//the index of the following loop
 	for(i = 0;i < attrNo;i++){
+		strcpy(hCmd,"publicKey/h");
+		sprintf(attrName,"%c",attribute[i]);
+		strcat(hCmd,attrName);
+		strcat(hCmd,".key");
+		fH = fopen(hCmd,"r");
 		element_init_G2(h[i],pairing);
 		element_fread(fH,"%s %s\n",&h[i],10);
-		//element_printf("h[%d]=%B\n",i,h[i]);
+		memset(attrName,0,2);
+		fclose(fH);
 	}
 
 	element_fread(fMsk,"%s %s",&msk,10);
@@ -37,7 +46,6 @@ void keyGen(pairing_t pairing,int attrNo,MSP *msp){
 	//close all file pointer
 	fclose(fG);
 	fclose(fGA);
-	fclose(fH);
 	fclose(fMsk);
 	//end of read file
 	//start to calculate private key and write file
@@ -51,11 +59,25 @@ void keyGen(pairing_t pairing,int attrNo,MSP *msp){
 	element_init_G2(K,pairing);
 	element_init_G2(Kx,pairing);
 	element_init_G2(temp,pairing);
-	FILE *fL = fopen("privateKey/L.key","w");//fL to write the privateKey L
-	FILE *fK = fopen("privateKey/K.key","w");//fK to write the privateKey K
-	FILE *fKx = fopen("privateKey/Kx.key","w");//fKx to write the privateKey fKx
-	FILE *fUsr = fopen("user.file","r");	
-
+	char command[100];
+	//establish the user's own directory
+	memset(command,0,100);
+	strcpy(command,"mkdir ");
+	strcat(command,userName);
+	system(command);
+	//open the files of users' private keys
+	char fileL[100];
+	char fileK[100];
+	char fileKx[100];
+	strcpy(fileL,userName);
+	strcat(fileL,"/L.key");
+	strcpy(fileK,userName);
+	strcat(fileK,"/K.key");
+	strcpy(fileKx,userName);
+	strcat(fileKx,"/Kx.key");
+	FILE *fL = fopen(fileL,"w");//fL to write the privateKey L
+	FILE *fK = fopen(fileK,"w");//fK to write the privateKey K
+	FILE *fKx = fopen(fileKx,"w");//fKx to write the privateKey Kx
 	
 	element_random(t);
 	element_pow_zn(L,g,t);
@@ -68,7 +90,6 @@ void keyGen(pairing_t pairing,int attrNo,MSP *msp){
 		element_set0(Kx);
 		element_pow_zn(Kx,h[i],t);//Kx = hx^t
 		element_fprintf(fKx,"%B\n",Kx);//Kx = hx^t
-	//	printf("keyName = %c\n",msp->label[i]);
 	}
 	//close all file pointer
 	fclose(fL);

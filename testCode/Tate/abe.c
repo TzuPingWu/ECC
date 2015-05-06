@@ -7,7 +7,7 @@
 #include"LSSS.h"
 #include"encrypt.h"
 #include"decrypt.h"
-int main(){
+int main(int argc, char *argv[]){
 	//construct a CP-ABE scheme
 	//Pre-computation -> read the file of users
 	float difftime= 0.0;
@@ -41,8 +41,12 @@ int main(){
 		}
 	}
 	//1. Setup	
+	if(argc < 2){
+		fprintf(stderr,"Wrong input arguments!\n");		
+		fprintf(stderr,"Please input <./wAbe><sinuglar> or <./wAbe><ordinary>\n");
+	}else{
 	pairing_t pairing;
-	setup(rows,&pairing,&msp);//the first step to set up the public key and master key
+	setup(argv[1],rows,&pairing,&msp);//the first step to set up the public key and master key
 	//2. KeyGen
 	for( i = 0; i<userNo;i++){
 		keyGen(pairing,attrNo[i],attribute[i],userName[i]);//genereate the private key according to user's attribute
@@ -59,8 +63,7 @@ int main(){
 	//5.Time calculation presents
 	difftime = (float)(tEnd-tStart)/CLOCKS_PER_SEC;
 	printf("The cost time of tate pairing: %fs\n",difftime);
-
-
+	}
 
 	return 0;
 }

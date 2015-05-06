@@ -19,7 +19,6 @@ void mspClear(MSP *msp){
 	for(i = 0;i < msp->rows;i++){
 		free((msp->matrix)[i]);
 	}
-
 	free(msp -> matrix);
 	free(msp -> label);
 	return;
@@ -42,7 +41,6 @@ void mspSetup(MSP *msp){
 			fscanf(fAttr,"%d ",&msp->matrix[i][j]);
 		}
 	}
-	
 	return;
 }
 

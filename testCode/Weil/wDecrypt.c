@@ -1,5 +1,6 @@
 #include "/usr/local/include/pbc/pbc.h"
-#include "decrypt.h"
+#include "weilPairing.h"
+#include "wDecrypt.h"
 #include "elementIO.h"
 #include "LSSS.h"
 #include <stdio.h>
@@ -12,9 +13,9 @@ void wSwap(int *A,int *B){
 	return;
 }
 
-void wFindOmega(MSP *msp,element_t *omega){
+void wFindOmega(MSP *msp,element_t *omega,int attrNo,char *attribute){
 	
-	int rows = 3;
+	int rows = attrNo;
 	int cols = msp->cols;
 	int sum = 0;
 	int k, i, j; //the index of the for-loop
@@ -23,18 +24,31 @@ void wFindOmega(MSP *msp,element_t *omega){
 	int identity[rows];
 	int result[rows];
 	int middle[rows][rows];
-	tempMatrix[0][0] = 1;
-	tempMatrix[0][1] = 1;
-	tempMatrix[0][2] = 0;
-	tempMatrix[1][0] = 0;
-	tempMatrix[1][1] = -1;
-	tempMatrix[1][2] = 1;
-	tempMatrix[2][0] = 0;
-	tempMatrix[2][1] = 0;
-	tempMatrix[2][2] = -1;
-	identity[0] = 1;
-	identity[1] = 0;
-	identity[2] = 0;
+	char tmpLabel[2];
+	char tmpAttr[2];
+	int x = 0;//the index of the tempMatrix
+	int y = 0;//the index of the tempMatrix
+	int count = 0;//the count for while-loop
+	for(i =0; i < rows;i++){
+		if(i==0) identity[i]  = 1;
+		else identity[i] = 0;
+		for(j = 0;j<msp->rows;j++){
+			memset(tmpLabel,0,2);
+			memset(tmpAttr,0,2);
+			sprintf(tmpLabel,"%c",msp->label[j]);
+			sprintf(tmpAttr,"%c",attribute[i]);
+			if( strcmp(tmpLabel,tmpAttr) == 0){
+				while(count != cols){
+					tempMatrix[x][y] = msp->matrix[j][count];
+					count++;
+					y++;
+				}
+				count = 0;
+				y = 0;
+				x++;
+			}
+		}
+	}
 	//initialize the target array
 	//start to find the inverse matrix
     for (i=0; i<rows; ++i)
@@ -96,8 +110,7 @@ void wFindOmega(MSP *msp,element_t *omega){
 	
 	return;
 }
-void wDecrypt(pairing_t pairing,MSP *msp,element_t message){
-	
+void wDecrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attribute,char *userName){
 	//file pointer to read the ciphertext and private key
 	FILE *fG = fopen("publicKey/g.key","r");
 	FILE *fGA = fopen("publicKey/gA.key","r");
@@ -105,12 +118,25 @@ void wDecrypt(pairing_t pairing,MSP *msp,element_t message){
 	FILE *fC_0 = fopen("cipher/C_0.cipher","r");
 	FILE *fC_rows = fopen("cipher/C_rows.cipher","r");
 	FILE *fD_rows = fopen("cipher/D_rows.cipher","r");
-	FILE *fK = fopen("privateKey/K.key","r");
-	FILE *fL = fopen("privateKey/L.key","r");
-	FILE *fKx= fopen("privateKey/Kx.key","r");
-	FILE *fOmega = fopen("privateKey/omega.key","r");
-	
-	int i = 0;//the index for the following for-loop
+	FILE *fK;
+	FILE *fL;
+	FILE *fKx;
+	char kCmd[100];
+	char lCmd[100];
+	char kxCmd[100];
+	memset(kCmd,0,100);
+	memset(lCmd,0,100);
+	memset(kxCmd,0,100);
+	strcpy(kCmd,userName);
+	strcat(kCmd,"/K.key");
+	strcpy(lCmd,userName);
+	strcat(lCmd,"/L.key");
+	strcpy(kxCmd,userName);
+	strcat(kxCmd,"/Kx.key");
+	fK = fopen(kCmd,"r");
+	fL = fopen(lCmd,"r");
+	fKx = fopen(kxCmd,"r");
+	int i = 0,j=0;//the index for the following for-loop
 	int rows = msp->rows;//the rows of msp
 	element_t gA;//gA = g^a
 	element_t g;//g
@@ -120,7 +146,7 @@ void wDecrypt(pairing_t pairing,MSP *msp,element_t message){
 	element_t d_r[rows];
 	element_t K;//private key K
 	element_t L;//private key L
-	element_t Kx[rows];//private key for attribute A user
+	element_t Kx[attrNo];//private key for attribute A user
 	element_t omega[rows];//omega *lambda = s
 	element_init_G2(g,pairing);
 	element_init_G2(gA,pairing);
@@ -139,11 +165,13 @@ void wDecrypt(pairing_t pairing,MSP *msp,element_t message){
 		element_init_G2(cipher_r[i],pairing);
 		element_init_G2(d_r[i],pairing);
 		element_init_Zr(omega[i],pairing);
-		element_init_G2(Kx[i],pairing);
 		element_fread(fC_rows,"%s %s\n",&cipher_r[i],10);
 		element_fread(fD_rows,"%s %s\n",&d_r[i],10);
-	//	element_fread(fOmega,"%s\n",&omega[i],10);	
-		element_fread(fKx,"%s %s",&Kx[i],10);
+	}
+	for(i = 0; i < attrNo;i++){
+		element_init_G2(Kx[i],pairing);
+		element_fread(fKx,"%s %s\n",&Kx[i],10);
+	//	element_printf("Kx[%d] = %B\n",i,Kx[i]);
 	}
 	///////finish reading the ciphertext and key from file////////
 	//////close the file poitner
@@ -156,7 +184,7 @@ void wDecrypt(pairing_t pairing,MSP *msp,element_t message){
 	fclose(fL);
 	fclose(fKx);
 	
-	wFindOmega(msp,omega);
+	wFindOmega(msp,omega,attrNo,attribute);
 	//test
 	element_t mid;
 	element_t eGGAST;
@@ -182,66 +210,43 @@ void wDecrypt(pairing_t pairing,MSP *msp,element_t message){
 	element_t eGGAlphaS;//e(g,g)^alphaS
 	element_t eGGgSK;//e(C',K)
 	element_t eCL;//e(C_i,L)
-	element_t eCL2;//e(C_i,L)
-	element_t eCL3;//e(C_i,L)
-
 	element_t eDKx;//e(D_i,Kx)
-	element_t eDKx2;//e(D_i,Kx)
-	element_t eDKx3;//e(D_i,Kx)
-
-	element_t denominator;
 	element_t temp;
-	element_t temp2;
-	element_t temp3;
-	element_t temp4;
+	element_t denominator;//eCL*eDKx
 	element_t plaintext;
+	char tmpLabel[2];
+	char tmpAttr[2];
 	//numerator
 	element_init_GT(eGGAlphaS,pairing);
 	element_init_GT(eGGgSK,pairing);
 	//denominator
 	element_init_GT(eCL,pairing);
-	element_init_GT(eCL2,pairing);
-	element_init_GT(eCL3,pairing);
-	
 	element_init_GT(eDKx,pairing);
-	element_init_GT(eDKx2,pairing);
-	element_init_GT(eDKx3,pairing);
-	
-	element_init_GT (temp,pairing);
-	element_init_GT (temp2,pairing);
-	element_init_GT (temp3,pairing);
-	element_init_GT (temp4,pairing);
-
+	element_init_GT(temp,pairing);
 	element_init_GT(denominator,pairing);
 	//plaintext
 	element_init_GT(plaintext,pairing);
 	//start to calculate
+	//numerator
 	weilPairing(&eGGgSK,gS,K,pairing);
-	weilPairing(&eCL,cipher_r[2],L,pairing);
-	weilPairing(&eCL2,cipher_r[3],L,pairing);
-	weilPairing(&eCL3,cipher_r[4],L,pairing);
-	weilPairing(&eDKx,d_r[2],Kx[2],pairing);
-	weilPairing(&eDKx2,d_r[3],Kx[3],pairing);
-	weilPairing(&eDKx3,d_r[4],Kx[4],pairing);
-	
-	element_set0(temp);
-	element_set0(temp2);
-	element_set0(temp3);
-	element_set0(temp4);
+	//denominator
 	element_set0(denominator);
-	element_mul(temp,eCL,eDKx);
-	element_pow_zn(temp,temp,omega[0]);
-	element_mul(temp2,eCL2,eDKx2);
-	element_pow_zn(temp2,temp2,omega[1]);
-	element_mul(temp3,eCL3,eDKx3);
-	element_pow_zn(temp3,temp3,omega[2]);
-	element_mul(temp4,temp,temp2);
-	element_mul(denominator,temp4,temp3);
-//	element_printf("test1 = %B\ntest2 = %B\n,test3 = %B\n",temp,temp2,temp3);
-	element_mul(temp4,temp,temp2);
-	element_mul(denominator,temp4,temp3);
-//	element_pow_zn(denominator,temp,omega[0]);
-//	element_printf("denominator3 = %B\n",denominator);
+	for( i = 0; i<rows;i++){
+		for(j = 0 ; j < attrNo;j++){
+			memset(tmpLabel,0,2);
+			memset(tmpAttr,0,2);
+			sprintf(tmpLabel,"%c",msp->label[i]);
+			sprintf(tmpAttr,"%c",attribute[j]);
+			if(!strcmp(tmpLabel,tmpAttr)){
+				element_set0(temp);
+				weilPairing(&eCL,cipher_r[i],L,pairing);
+				weilPairing(&eDKx,d_r[i],Kx[j],pairing);
+				element_mul(temp,eCL,eDKx);
+				element_pow_zn(temp,temp,omega[j]);
+				element_mul(denominator,denominator,temp);
+			}
+		}
+	}
 	element_div(eGGAlphaS,eGGgSK,denominator);
 	
 	//element_printf("eGGalphaS2 = %B\n",eGGAlphaS);
