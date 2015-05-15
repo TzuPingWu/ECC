@@ -4,6 +4,7 @@
 #include "LSSS.h"
 #include "elementIO.h"
 #include<stdio.h>
+#define LOOP	1
 
 void generatePrime(mpz_t *p,int sBit){
 	mpz_init(*p);//initial the prime p

@@ -2,7 +2,7 @@
 #include<stdlib.h>
 #include<time.h>
 #include"/usr/local/include/pbc/pbc.h"
-#include"weilPairing.h"
+#include"/home/ping/Desktop/pbc-0.5.14/testCode/Weil/weilPairing.h"
 
 int main(){
 	pairing_t pairing;

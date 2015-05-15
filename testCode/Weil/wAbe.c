@@ -7,13 +7,17 @@
 #include"LSSS.h"
 #include"encrypt.h"
 #include"wDecrypt.h"
+#define LOOP	1
+
 int main(int argc, char *argv[]){
 	//construct a CP-ABE scheme
 	//Pre-computation -> read the file of users
 	float difftime= 0.0;
-	//char policy[] = "A OR ((B OR C) AND (D AND E))";
 	int i,j,k = 0;//the index of the following loop
+	int loopNum = 100;
 	clock_t wStart,wEnd;
+	FILE *fTime = fopen("timeWeil.txt","w+");
+	while(LOOP && loopNum){
 	wStart = clock();
 	MSP msp;//the monotone spanning program	
 	mspSetup(&msp);
@@ -63,8 +67,10 @@ int main(int argc, char *argv[]){
 	//5.Time calculation presents
 	difftime = (float)(wEnd-wStart)/CLOCKS_PER_SEC;
 	printf("The cost time of weil pairing: %fs\n",difftime);
+	fprintf(fTime,"%f\r\n",difftime);
+	loopNum--;
 	}
-
-
+	}//end of while-loop
+	fclose(fTime);
 	return 0;
 }

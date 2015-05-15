@@ -32,7 +32,7 @@ void setupOrdinaryPairing(pairing_t *pairing){
 	pbc_param_t param;
 	pbc_param_init_e_gen(param,rbits,qbits);
 	pairing_init_pbc_param(*pairing,param);
-//	pairing_param_clear(param);
+	pbc_param_clear(param);
 }
 
 void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
@@ -48,7 +48,7 @@ void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
 		fprintf(stderr,"Please input <./abe><sinuglar> or <./abe><ordinary>\n");
 	}
     element_t g;//the generator of G
-    element_init_G2(g,*pairing);//initial the generator g
+    element_init_G1(g,*pairing);//initial the generator g
     element_random(g);
     /* initial the random group elements h_1...h_attrNo 
     which belog to G and are associated with the attrNo 
@@ -56,7 +56,7 @@ void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
     */
       
     element_t h;
-	element_init_G2(h,*pairing);
+	element_init_G1(h,*pairing);
 	//initial the h
 	element_t alpha;
 	element_t a;
