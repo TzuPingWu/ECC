@@ -9,13 +9,31 @@
 #include"decrypt.h"
 #define	LOOP	1
 int main(int argc, char *argv[]){
+	//build the pairing function
+	pairing_t pairing;
+	if(argc < 2){
+		fprintf(stderr,"Wrong input arguments!\n");		
+		fprintf(stderr,"Please input <./abe><supersinuglar> or <./abe><ordinary>\n");
+	}else{
+	if(!strcmp(argv[1],"ordinary")){
+		setupOrdinaryPairing(&pairing);
+		printf("Use ordinary curve...\n");
+	}else if(!strcmp(argv[1],"supersingular")){
+		setupSingularPairing(&pairing);//setup pairing first
+		printf("Use supersingular curve...\n");
+	}else{
+		fprintf(stderr,"Wrong input arguments!");		
+		fprintf(stderr,"Please input <./abe><sinuglar> or <./abe><ordinary>\n");
+	}
+	}
+	//end of building the pairing funcion
 	//construct a CP-ABE scheme
 	//Pre-computation -> read the file of users
 	float difftime= 0.0;
 	int i,j,k = 0;//the index of the following loop
-	int loopNum = 100;
 	clock_t tStart,tEnd;
 	FILE *fTime = fopen("timeTate.txt","w+");
+	int loopNum = 100;
 	while(LOOP && loopNum){
 	tStart = clock();
 	MSP msp;//the monotone spanning program	
@@ -44,11 +62,6 @@ int main(int argc, char *argv[]){
 		}
 	}
 	//1. Setup	
-	if(argc < 2){
-		fprintf(stderr,"Wrong input arguments!\n");		
-		fprintf(stderr,"Please input <./abe><sinuglar> or <./abe><ordinary>\n");
-	}else{
-	pairing_t pairing;
 	setup(argv[1],rows,&pairing,&msp);//the first step to set up the public key and master key
 	//2. KeyGen
 	for( i = 0; i<userNo;i++){
@@ -67,8 +80,8 @@ int main(int argc, char *argv[]){
 	difftime = (float)(tEnd-tStart)/CLOCKS_PER_SEC;
 	printf("The cost time of tate pairing: %fs\n",difftime);
 	fprintf(fTime,"%f\r\n",difftime);
+	
 	loopNum--;
-	}
 	}//end of while-loop
 	fclose(fTime);
 	return 0;

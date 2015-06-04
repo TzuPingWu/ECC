@@ -10,6 +10,19 @@
 #define LOOP	1
 
 int main(int argc, char *argv[]){
+	//build the pairing function
+	pairing_t pairing;
+	if(!strcmp(argv[1],"ordinary")){
+		setupOrdinaryPairing(&pairing);//setup pairing first
+		printf("Use ordinary curve...\n");
+	}else if(!strcmp(argv[1],"singular")){
+		setupSingularPairing(&pairing);//setup pairing first
+		printf("Use singular curve...\n");
+	}else{
+		fprintf(stderr,"Wrong input arguments!");		
+		fprintf(stderr,"Please input <./wAbe><sinuglar> or <./wAbe><ordinary>\n");
+	}
+	
 	//construct a CP-ABE scheme
 	//Pre-computation -> read the file of users
 	float difftime= 0.0;
@@ -45,7 +58,6 @@ int main(int argc, char *argv[]){
 		}
 	}
 	//1. Setup	
-	pairing_t pairing;
 	if(argc < 2){
 		fprintf(stderr,"Wrong input arguments!\n");		
 		fprintf(stderr,"Please input <./wAbe><sinuglar> or <./wAbe><ordinary>\n");

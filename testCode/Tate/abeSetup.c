@@ -15,9 +15,11 @@ void generatePrime(mpz_t *p,int sBit){
 
 void setupSingularPairing(pairing_t *pairing){
 	mpz_t p;
-	generatePrime(&p,512);//generate 512-bit prime
+	//generatePrime(&p,512);//generate 512-bit prime
+	int rbits = 224;
+	int qbits = 1024;
 	pbc_param_t param;
-	pbc_param_init_a1_gen(param,p);//using type a1 curve
+	pbc_param_init_a_gen(param,rbits,qbits);//using type a curve
 	pairing_init_pbc_param(*pairing,param);
 //	FILE *fPrime = fopen("prime.data","w");//the group order of prime p
 //	gmp_fprintf(fPrime,"%Zd",p);
@@ -27,8 +29,8 @@ void setupSingularPairing(pairing_t *pairing){
 }
 
 void setupOrdinaryPairing(pairing_t *pairing){
-	int rbits = 160;
-	int qbits = 1024;
+	int rbits = 224;
+	int qbits = 2048;
 	pbc_param_t param;
 	pbc_param_init_e_gen(param,rbits,qbits);
 	pairing_init_pbc_param(*pairing,param);
@@ -37,16 +39,18 @@ void setupOrdinaryPairing(pairing_t *pairing){
 
 void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
 	int count = 0;//the index of the attribute array
+	/*
 	if(!strcmp(string,"ordinary")){
 		setupOrdinaryPairing(pairing);
 		printf("Use ordinary curve...\n");
-	}else if(!strcmp(string,"singular")){
+	}else if(!strcmp(string,"supersingular")){
 		setupSingularPairing(pairing);//setup pairing first
-		printf("Use singular curve...\n");
+		printf("Use supersingular curve...\n");
 	}else{
 		fprintf(stderr,"Wrong input arguments!");		
 		fprintf(stderr,"Please input <./abe><sinuglar> or <./abe><ordinary>\n");
 	}
+	*/
     element_t g;//the generator of G
     element_init_G1(g,*pairing);//initial the generator g
     element_random(g);

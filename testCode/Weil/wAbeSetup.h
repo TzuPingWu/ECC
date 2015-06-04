@@ -6,7 +6,7 @@
 
 void generatePrime(mpz_t *p,int sBit);
 //generate prime number
-void setupPairing(pairing_t *pairing);
+void setupSingularPairing(pairing_t *pairing);
 void setupOrdinaryPairing(pairing_t *pairing);
 //setup the pairing
 void wSetup(char *string,int attrNo,pairing_t *pairing, MSP *msp);
