@@ -1,5 +1,6 @@
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #include<time.h>
 #include"/usr/local/include/pbc/pbc.h"
 #include"abeSetup.h"
@@ -9,12 +10,12 @@
 #include"decrypt.h"
 #define	LOOP	1
 int main(int argc, char *argv[]){
-	//build the pairing function
-	pairing_t pairing;
+	//build the pairing function	
 	if(argc < 2){
 		fprintf(stderr,"Wrong input arguments!\n");		
 		fprintf(stderr,"Please input <./abe><supersinuglar> or <./abe><ordinary>\n");
 	}else{
+	pairing_t pairing;
 	if(!strcmp(argv[1],"ordinary")){
 		setupOrdinaryPairing(&pairing);
 		printf("Use ordinary curve...\n");
@@ -35,6 +36,7 @@ int main(int argc, char *argv[]){
 	FILE *fTime = fopen("timeTate.txt","w+");
 	int loopNum = 100;
 	while(LOOP && loopNum){
+	
 	tStart = clock();
 	MSP msp;//the monotone spanning program	
 	mspSetup(&msp);
@@ -62,7 +64,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 	//1. Setup	
-	setup(argv[1],rows,&pairing,&msp);//the first step to set up the public key and master key
+	setup(rows,&pairing,&msp);//the first step to set up the public key and master key
 	//2. KeyGen
 	for( i = 0; i<userNo;i++){
 		keyGen(pairing,attrNo[i],attribute[i],userName[i]);//genereate the private key according to user's attribute

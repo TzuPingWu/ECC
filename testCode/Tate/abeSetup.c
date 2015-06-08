@@ -14,10 +14,10 @@ void generatePrime(mpz_t *p,int sBit){
 }
 
 void setupSingularPairing(pairing_t *pairing){
-	mpz_t p;
+	//mpz_t p;
 	//generatePrime(&p,512);//generate 512-bit prime
-	int rbits = 224;
-	int qbits = 1024;
+	int rbits = 256;
+	int qbits = 1624;
 	pbc_param_t param;
 	pbc_param_init_a_gen(param,rbits,qbits);//using type a curve
 	pairing_init_pbc_param(*pairing,param);
@@ -29,15 +29,25 @@ void setupSingularPairing(pairing_t *pairing){
 }
 
 void setupOrdinaryPairing(pairing_t *pairing){
-	int rbits = 224;
-	int qbits = 2048;
+
+	int rbits = 256;
+	int qbits = 3248;
 	pbc_param_t param;
 	pbc_param_init_e_gen(param,rbits,qbits);
 	pairing_init_pbc_param(*pairing,param);
 	pbc_param_clear(param);
+
+/*
+	int rbits = 256;
+	pbc_param_t param;
+	pbc_param_init_f_gen(param, rbits);
+	pairing_init_pbc_param(*pairing,param);
+	pbc_param_out_str(stdout, param);
+	pbc_param_clear(param);
+*/
 }
 
-void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
+void setup(int attrNo,pairing_t *pairing, MSP *msp){
 	int count = 0;//the index of the attribute array
 	/*
 	if(!strcmp(string,"ordinary")){
@@ -52,7 +62,7 @@ void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
 	}
 	*/
     element_t g;//the generator of G
-    element_init_G1(g,*pairing);//initial the generator g
+    element_init_G2(g,*pairing);//initial the generator g
     element_random(g);
     /* initial the random group elements h_1...h_attrNo 
     which belog to G and are associated with the attrNo 
@@ -60,7 +70,7 @@ void setup(char *string,int attrNo,pairing_t *pairing, MSP *msp){
     */
       
     element_t h;
-	element_init_G1(h,*pairing);
+	element_init_G2(h,*pairing);
 	//initial the h
 	element_t alpha;
 	element_t a;

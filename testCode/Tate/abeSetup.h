@@ -9,6 +9,6 @@ void generatePrime(mpz_t *p,int sBit);
 void setupSingularPairing(pairing_t *pairing);
 void setupOrdinaryPairing(pairing_t *pairing);
 //setup the pairing
-void setup(char *string,int attrNo,pairing_t *pairing,MSP *msp);
+void setup(int attrNo,pairing_t *pairing,MSP *msp);
 //the first setup of cp-abe protocol -- setup
 #endif
