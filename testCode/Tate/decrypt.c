@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 void swap(int *A,int *B){
 	int temp;
 	temp = *A;
@@ -206,7 +207,10 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attri
 	//element_printf("denominator1 = %B\n",eGGAST);
 	//element_printf("eCL1 = %B\n",eGGATL_eGHRT);
 	//test*/
-
+	//calculate the time of pairing function	
+	FILE *fDecrypt = fopen("decryptTime.txt","a+");
+	float decryptTime = 0.0;
+	clock_t dStart,dEnd;
 	//start to decrypt the ciphertext
 	element_t eGGAlphaS;//e(g,g)^alphaS
 	element_t eGGgSK;//e(C',K)
@@ -229,9 +233,11 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attri
 	element_init_GT(plaintext,pairing);
 	//start to calculate
 	//numerator
+	dStart = clock();
 	element_pairing(eGGgSK,gS,K);
 	//denominator
 	element_set0(denominator);
+	
 	for( i = 0; i<rows;i++){
 		for(j = 0 ; j < attrNo;j++){
 			memset(tmpLabel,0,2);
@@ -248,10 +254,12 @@ void decrypt(pairing_t pairing,MSP *msp,element_t message,int attrNo,char *attri
 			}
 		}
 	}
+	dEnd = clock();
+	decryptTime = (float)(dEnd - dStart)/CLOCKS_PER_SEC;
+	fprintf(fDecrypt,"%f\r\n",decryptTime);
 
 	element_div(eGGAlphaS,eGGgSK,denominator);
 	element_div(plaintext,C,eGGAlphaS);
 	element_printf("M2 = %B\n",plaintext);
-
-
+	fclose(fDecrypt);
 }

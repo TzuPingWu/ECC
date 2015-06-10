@@ -5,6 +5,7 @@
 #include "elementIO.h"
 #include<stdio.h>
 #include<stdint.h>
+#include<time.h>
 
 void generatePrime(mpz_t *p,int sBit){
 	mpz_init(*p);//initial the prime p
@@ -14,7 +15,7 @@ void generatePrime(mpz_t *p,int sBit){
 }
 
 void setupSingularPairing(pairing_t *pairing){
-	//mpz_t p;
+	mpz_t p;
 	//generatePrime(&p,512);//generate 512-bit prime
 	int rbits = 256;
 	int qbits = 1624;
@@ -29,22 +30,12 @@ void setupSingularPairing(pairing_t *pairing){
 }
 
 void setupOrdinaryPairing(pairing_t *pairing){
-
 	int rbits = 256;
 	int qbits = 3248;
 	pbc_param_t param;
 	pbc_param_init_e_gen(param,rbits,qbits);
 	pairing_init_pbc_param(*pairing,param);
 	pbc_param_clear(param);
-
-/*
-	int rbits = 256;
-	pbc_param_t param;
-	pbc_param_init_f_gen(param, rbits);
-	pairing_init_pbc_param(*pairing,param);
-	pbc_param_out_str(stdout, param);
-	pbc_param_clear(param);
-*/
 }
 
 void setup(int attrNo,pairing_t *pairing, MSP *msp){
@@ -60,17 +51,20 @@ void setup(int attrNo,pairing_t *pairing, MSP *msp){
 		fprintf(stderr,"Wrong input arguments!");		
 		fprintf(stderr,"Please input <./abe><sinuglar> or <./abe><ordinary>\n");
 	}
-	*/
-    element_t g;//the generator of G
-    element_init_G2(g,*pairing);//initial the generator g
+	*/	
+	//calculate the time of pairing in setup phase
+	FILE* fSetup = fopen("setupPairingTime.txt","a+");
+	clock_t setupStart,setupEnd;
+    float setupTime = 0.0;
+	element_t g;//the generator of G
+    element_init_G1(g,*pairing);//initial the generator g
     element_random(g);
     /* initial the random group elements h_1...h_attrNo 
     which belog to G and are associated with the attrNo 
     attributes in the system.
-    */
-      
+    */  
     element_t h;
-	element_init_G2(h,*pairing);
+	element_init_G1(h,*pairing);
 	//initial the h
 	element_t alpha;
 	element_t a;
@@ -88,7 +82,10 @@ void setup(int attrNo,pairing_t *pairing, MSP *msp){
 	element_init_G2(gA,*pairing);//initial the gA
 	element_pow_zn(gAlpha,g,alpha);//gAlpha=g^alpha
 	element_pow_zn(gA,g,a);//gA=g^a
+	setupStart = clock();
 	element_pairing(pubKey,g,gAlpha);//publicKey = e(g,g^alpha) = e(g,g)^alpha
+	setupEnd = clock();
+	setupTime = (float)(setupEnd - setupStart)/CLOCKS_PER_SEC;
 	//Master secret key
 	element_t msk;
 	element_init_G2(msk,*pairing);
@@ -99,9 +96,11 @@ void setup(int attrNo,pairing_t *pairing, MSP *msp){
 	FILE* fPub = fopen("publicKey/eGG.key","w");//file pointer to the public key e(g,gALPHA)
 	FILE* fH;//file pointer the the attribute key
 	FILE* fMsk = fopen("MSK/msk.key","w");//file pointer to the master key
+
 	element_fprintf(fG,"%B\n",g);
 	element_fprintf(fPub,"%B\n",pubKey);
 	element_fprintf(fGA,"%B\n",gA);
+	fprintf(fSetup,"%f\r\n",setupTime);
 	count = 0;
 	char hCmd[100];//the command line for the pointer of FILE* fH
 	char attrName[2];//the name of attribute
@@ -128,6 +127,7 @@ void setup(int attrNo,pairing_t *pairing, MSP *msp){
 	fclose(fGA);
 	fclose(fPub);
 	fclose(fMsk);
+	fclose(fSetup);
 	element_clear(g);
 	element_clear(a);
 	element_clear(alpha);
