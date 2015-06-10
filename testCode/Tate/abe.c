@@ -11,11 +11,11 @@
 #define	LOOP	1
 int main(int argc, char *argv[]){
 	//build the pairing function	
+	pairing_t pairing;
 	if(argc < 2){
 		fprintf(stderr,"Wrong input arguments!\n");		
 		fprintf(stderr,"Please input <./abe><supersinuglar> or <./abe><ordinary>\n");
 	}else{
-	pairing_t pairing;
 	if(!strcmp(argv[1],"ordinary")){
 		setupOrdinaryPairing(&pairing);
 		printf("Use ordinary curve...\n");

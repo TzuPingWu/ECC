@@ -45,19 +45,29 @@ int main(int argc, char **argv) {
 	}else{
 		printf("pairing is NOT symmetric\n");
 	}
+	FILE *fTime = fopen("curve.txt","w+");
 	clock_t start,end;//start:the start of pairing, end:the end of pairing
 	float difftime=0.0;
+	int loopnum = 100;//the numbers for the while-loop
+	int i;//the index for the for-loop
 	element_init_G1(g, pairing);
 	element_init_G2(h, pairing);
 	element_init_GT(temp1, pairing);
 	element_random(g);
-	element_random(h);	
-	start = clock();
-	element_pairing(temp1, g, h);
-	end = clock();
-	difftime = (float)(end-start)/CLOCKS_PER_SEC;
-	printf("The time of using pairing is %f\n",difftime);
- }//end of main-else
+	element_random(h);
+	for(i = 0;i<100;i++){	
+		while(loopnum--){
+			start = clock();
+			element_pairing(temp1, g, h);
+			end = clock();
+		}
+		difftime = (float)(end-start)/CLOCKS_PER_SEC;
+		printf("The time of using pairing is %f\n",difftime);
+		fprintf(fTime,"%f\r\n",difftime);
+		difftime = 0.0;
+		loopnum = 100;
+	} 
+}//end of main-else
 
   return 0;
 }
